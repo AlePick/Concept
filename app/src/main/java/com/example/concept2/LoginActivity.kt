@@ -83,7 +83,7 @@ class LoginActivity : AppCompatActivity() {
         //val friendsArray=
         val user = hashMapOf(
             "Username" to username,
-            //"Friends" to friendsArray,
+            "Friends" to arrayListOf<String>(),
             "Online" to false
         )
 

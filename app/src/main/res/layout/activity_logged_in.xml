@@ -71,7 +71,7 @@
             app:layout_constraintTop_toBottomOf="@+id/new_game" />
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerView"
+            android:id="@+id/friends_list_view"
             android:layout_width="355dp"
             android:layout_height="207dp"
             android:layout_marginTop="20dp"
@@ -146,18 +146,6 @@
                 android:translationX="70dp" />
 
         </LinearLayout>
-
-        <ImageView
-            android:id="@+id/profile_picture"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginRight="10dp"
-            android:scaleType="centerCrop"
-            app:layout_constraintBottom_toBottomOf="@+id/recyclerView"
-            app:layout_constraintEnd_toEndOf="@+id/recyclerView"
-            app:layout_constraintTop_toBottomOf="@+id/add_friend"
-            tools:srcCompat="@tools:sample/avatars" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

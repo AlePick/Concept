@@ -8,18 +8,17 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.*
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import android.Manifest
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.provider.MediaStore
-import android.widget.TextView
+import android.widget.*
 import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.getField
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
@@ -33,10 +32,13 @@ import java.util.*
 
 
  class LoggedIn : AppCompatActivity() {
-    lateinit var conceptButton: Button
-
     private var mAuth: FirebaseAuth? = null
     private lateinit var user: FirebaseUser
+
+    lateinit var conceptButton: Button
+    lateinit var addFriendButton: Button
+    lateinit var addFriendInput: EditText
+    lateinit var friendsList: Array<String>
 
     private var galleryPermissionCode = 1001
     private var imagePickCode = 1000
@@ -56,14 +58,28 @@ import java.util.*
 
 
     private fun initHomepage(){
-        activateConceptMenu()
+        //SETTING ONLINE STATUS
+        cloudFirestore.collection("accounts").document("${user.displayName}")
+                .update("Online", true)
+                .addOnFailureListener {
+                    Toast.makeText(this, "Something went wrong with your online status. Try restarting Concept", Toast.LENGTH_SHORT).show()
+                }
+
+
+        conceptButton = findViewById<Button>(R.id.menu_button)
+        activateConceptMenu(conceptButton)
         //RENDER PROFILE PICTURE MA PASSANDO COME ARGOMENTO UN StorageReference AL POSTO DI UN FILE URI
+
+        addFriendButton = findViewById<Button>(R.id.add_friend_button)
+        addFriendInput = findViewById<EditText>(R.id.add_friend)
+        activateAddFriendButton(addFriendButton, addFriendInput)
+
+        friendsList= getOnlineFriendsList()
     }
 
 
-    private fun activateConceptMenu(){
-        conceptButton = findViewById<Button>(R.id.menu_button)
-        conceptButton.setOnClickListener {
+    private fun activateConceptMenu(button: Button){
+        button.setOnClickListener {
 
             val menuDialog = Dialog(this)
             menuDialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -82,8 +98,40 @@ import java.util.*
 
             menuDialog.show()
             activateChangePictureListener(menuDialog)
+
+            //LOGOUT BUTTON
+            val logoutButton = menuDialog.findViewById<Button>(R.id.logout_button)
+            activateLogoutButton(logoutButton)
         }
     }
+
+    private fun activateAddFriendButton(button: Button, textInput: EditText){
+        button.setOnClickListener {
+            val friendUsername = textInput.text.toString()
+            val userAccount = cloudFirestore.collection("accounts").document(friendUsername)
+
+            userAccount.update("Friends", FieldValue.arrayUnion(user.displayName))
+                    .addOnCompleteListener(this){task ->
+                        if (task.isSuccessful){
+                            val thisAccount = cloudFirestore.collection("accounts").document("${user.displayName}")
+                            thisAccount.update("Friends", FieldValue.arrayUnion(friendUsername))
+                                    .addOnCompleteListener(this){ task ->
+                                        if (task.isSuccessful){
+                                            Toast.makeText(this, "$friendUsername is now your friend!", Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            Toast.makeText(this, "An error occurred during the request", Toast.LENGTH_LONG).show()
+                                        }
+                                    }
+                        }
+                        else {
+                            Toast.makeText(this, "This username does not exists", Toast.LENGTH_LONG).show()
+                        }
+                    }
+        }
+    }
+
+
+
 
     private fun activateChangePictureListener(dialog: Dialog){
         dialog.findViewById<ImageView>(R.id.profile_picture).setOnClickListener {
@@ -155,4 +203,29 @@ import java.util.*
      }
 
 
+    private fun activateLogoutButton(button: Button){
+        button.setOnClickListener {
+            cloudFirestore.collection("accounts").document("${user.displayName}")
+                    .update("Online", false)
+
+            mAuth!!.signOut()
+            startActivity(Intent(this, LoginActivity::class.java))
+        }
+    }
+
+
+
+    private fun getOnlineFriendsList(): Array<String> {
+        /*val userAccount = cloudFirestore.collection("accounts").document("${user.displayName}")
+        val friendsList : Array<String>
+
+        userAccount.get()
+                .addOnSuccessListener {document ->
+                    if (document != null){
+                        document.getDocument("Friends")
+                    }
+                }
+        */
+        return arrayOf("")
+    }
 }
