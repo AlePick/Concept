@@ -28,4 +28,6 @@
     <string name="music_switch">Music</string>
     <string name="sounds_switch">Sounds</string>
     <string name="username_profile_icture">Username profile picture</string>
+
+    <string name="friend_profile_picture">Friend profile picture</string>
 </resources>

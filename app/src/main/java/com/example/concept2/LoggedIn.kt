@@ -13,9 +13,15 @@ import com.google.firebase.auth.FirebaseUser
 import android.Manifest
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
+import android.provider.DocumentsContract
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.*
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.getField
@@ -29,6 +35,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.util.*
+import kotlin.collections.ArrayList
 
 
  class LoggedIn : AppCompatActivity() {
@@ -38,7 +45,7 @@ import java.util.*
     lateinit var conceptButton: Button
     lateinit var addFriendButton: Button
     lateinit var addFriendInput: EditText
-    lateinit var friendsList: Array<String>
+    lateinit var friendListView: RecyclerView
 
     private var galleryPermissionCode = 1001
     private var imagePickCode = 1000
@@ -53,6 +60,7 @@ import java.util.*
         user = mAuth!!.currentUser!!
 
         Toast.makeText(this, "Welcome " + user.displayName, Toast.LENGTH_SHORT).show()
+
         initHomepage()
     }
 
@@ -68,13 +76,20 @@ import java.util.*
 
         conceptButton = findViewById<Button>(R.id.menu_button)
         activateConceptMenu(conceptButton)
+
         //RENDER PROFILE PICTURE MA PASSANDO COME ARGOMENTO UN StorageReference AL POSTO DI UN FILE URI
 
         addFriendButton = findViewById<Button>(R.id.add_friend_button)
         addFriendInput = findViewById<EditText>(R.id.add_friend)
         activateAddFriendButton(addFriendButton, addFriendInput)
 
-        friendsList= getOnlineFriendsList()
+        //Recycler view from the friends list
+        friendListView = findViewById<RecyclerView>(R.id.friends_list_view)
+        val friendsList= getOnlineFriendsList()
+
+        friendListView.adapter = FriendAdapter(friendsList)
+        friendListView.layoutManager = LinearLayoutManager(this)
+        friendListView.setHasFixedSize(true)
     }
 
 
@@ -215,17 +230,37 @@ import java.util.*
 
 
 
-    private fun getOnlineFriendsList(): Array<String> {
-        /*val userAccount = cloudFirestore.collection("accounts").document("${user.displayName}")
-        val friendsList : Array<String>
+    private fun getOnlineFriendsList(): List<Friend> {
+        val userAccount = cloudFirestore.collection("accounts").document("${user.displayName}")
+        val friendsList = ArrayList<Friend>()
+        /*
+        userAccount.addSnapshotListener(EventListener<DocumentSnapshot>{ documentSnapshot, e ->
+            if (e != null) {
+                return@EventListener
+            }
+            if (documentSnapshot?.get("Friends") != null){
 
+            }
+        })
         userAccount.get()
                 .addOnSuccessListener {document ->
                     if (document != null){
-                        document.getDocument("Friends")
                     }
                 }
         */
-        return arrayOf("")
+        val item= Friend(R.drawable.user_green, "pippo", true, true)
+        friendsList += item
+        val item2= Friend(R.drawable.user_green, "rondo", true, false)
+        friendsList += item2
+        val item3= Friend(R.drawable.user_green, "rondo", true, false)
+        friendsList += item3
+        val item4= Friend(R.drawable.user_green, "rondo", true, false)
+        friendsList += item4
+        val item5= Friend(R.drawable.user_green, "rondo", true, false)
+        friendsList += item5
+        val item6= Friend(R.drawable.user_green, "rondo", true, false)
+        friendsList += item6
+        return friendsList
     }
+
 }

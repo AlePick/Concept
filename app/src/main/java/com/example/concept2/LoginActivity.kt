@@ -84,7 +84,8 @@ class LoginActivity : AppCompatActivity() {
         val user = hashMapOf(
             "Username" to username,
             "Friends" to arrayListOf<String>(),
-            "Online" to false
+            "Online" to false,
+            "Ingame" to false
         )
 
         if ( username.isNotEmpty() && password.isNotEmpty() ) {
