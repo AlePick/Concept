@@ -24,7 +24,6 @@ class FriendAdapter(private val friendsList: List<Friend>): RecyclerView.Adapter
 
     override fun onBindViewHolder(holder: FriendViewHolder, position: Int) {
         val currentFriend = friendsList[position]
-        //holder.imageView.setImageResource(currentFriend.image)
         holder.imageView.setImageResource(currentFriend.image)
         holder.usernameView.text = currentFriend.username
         if (currentFriend.online){

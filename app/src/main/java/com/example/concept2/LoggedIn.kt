@@ -20,11 +20,11 @@ import android.widget.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.UserProfileChangeRequest
-import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.*
 import com.google.firebase.firestore.EventListener
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.getField
+import com.google.firebase.firestore.model.Document
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
@@ -51,6 +51,7 @@ import kotlin.collections.ArrayList
     private var imagePickCode = 1000
 
     private var cloudFirestore = Firebase.firestore
+    lateinit var snapshotListener: ListenerRegistration
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,11 +65,22 @@ import kotlin.collections.ArrayList
         initHomepage()
     }
 
+     override fun onStart() {
+         super.onStart()
+     }
 
+     override fun onStop(){
+         super.onStop()
+     }
     private fun initHomepage(){
+        //Recycler view from the friends list
+        friendListView = findViewById<RecyclerView>(R.id.friends_list_view)
+        val fsUser = cloudFirestore.collection("accounts").document("${user.displayName}")
+        getOnlineFriendsList(fsUser)
+
+
         //SETTING ONLINE STATUS
-        cloudFirestore.collection("accounts").document("${user.displayName}")
-                .update("Online", true)
+        fsUser.update("Online", true)
                 .addOnFailureListener {
                     Toast.makeText(this, "Something went wrong with your online status. Try restarting Concept", Toast.LENGTH_SHORT).show()
                 }
@@ -83,13 +95,6 @@ import kotlin.collections.ArrayList
         addFriendInput = findViewById<EditText>(R.id.add_friend)
         activateAddFriendButton(addFriendButton, addFriendInput)
 
-        //Recycler view from the friends list
-        friendListView = findViewById<RecyclerView>(R.id.friends_list_view)
-        val friendsList= getOnlineFriendsList()
-
-        friendListView.adapter = FriendAdapter(friendsList)
-        friendListView.layoutManager = LinearLayoutManager(this)
-        friendListView.setHasFixedSize(true)
     }
 
 
@@ -123,25 +128,26 @@ import kotlin.collections.ArrayList
     private fun activateAddFriendButton(button: Button, textInput: EditText){
         button.setOnClickListener {
             val friendUsername = textInput.text.toString()
-            val userAccount = cloudFirestore.collection("accounts").document(friendUsername)
 
-            userAccount.update("Friends", FieldValue.arrayUnion(user.displayName))
-                    .addOnCompleteListener(this){task ->
-                        if (task.isSuccessful){
-                            val thisAccount = cloudFirestore.collection("accounts").document("${user.displayName}")
-                            thisAccount.update("Friends", FieldValue.arrayUnion(friendUsername))
-                                    .addOnCompleteListener(this){ task ->
-                                        if (task.isSuccessful){
-                                            Toast.makeText(this, "$friendUsername is now your friend!", Toast.LENGTH_SHORT).show()
-                                        } else {
-                                            Toast.makeText(this, "An error occurred during the request", Toast.LENGTH_LONG).show()
+            if (friendUsername.isNotEmpty()) {
+                val userAccount = cloudFirestore.collection("accounts").document(friendUsername)
+                userAccount.update("Friends", FieldValue.arrayUnion(user.displayName))
+                        .addOnCompleteListener(this) { task ->
+                            if (task.isSuccessful) {
+                                val thisAccount = cloudFirestore.collection("accounts").document("${user.displayName}")
+                                thisAccount.update("Friends", FieldValue.arrayUnion(friendUsername))
+                                        .addOnCompleteListener(this) { task ->
+                                            if (task.isSuccessful) {
+                                                Toast.makeText(this, "$friendUsername is now your friend!", Toast.LENGTH_SHORT).show()
+                                            } else {
+                                                Toast.makeText(this, "An error occurred during the request", Toast.LENGTH_LONG).show()
+                                            }
                                         }
-                                    }
+                            } else {
+                                Toast.makeText(this, "This username does not exists", Toast.LENGTH_LONG).show()
+                            }
                         }
-                        else {
-                            Toast.makeText(this, "This username does not exists", Toast.LENGTH_LONG).show()
-                        }
-                    }
+            }
         }
     }
 
@@ -220,47 +226,70 @@ import kotlin.collections.ArrayList
 
     private fun activateLogoutButton(button: Button){
         button.setOnClickListener {
+            snapshotListener.remove()
             cloudFirestore.collection("accounts").document("${user.displayName}")
                     .update("Online", false)
-
-            mAuth!!.signOut()
-            startActivity(Intent(this, LoginActivity::class.java))
+                    .addOnSuccessListener {
+                        mAuth!!.signOut()
+                        startActivity(Intent(this, LoginActivity::class.java))
+                    }
         }
     }
 
 
 
-    private fun getOnlineFriendsList(): List<Friend> {
-        val userAccount = cloudFirestore.collection("accounts").document("${user.displayName}")
-        val friendsList = ArrayList<Friend>()
-        /*
-        userAccount.addSnapshotListener(EventListener<DocumentSnapshot>{ documentSnapshot, e ->
-            if (e != null) {
-                return@EventListener
-            }
-            if (documentSnapshot?.get("Friends") != null){
+    private fun getOnlineFriendsList(userAccount: DocumentReference) {
 
+        snapshotListener = userAccount.addSnapshotListener(EventListener<DocumentSnapshot> addSnapshotListener@{ snapshot, e ->
+            if (e != null) {
+                Toast.makeText(this@LoggedIn, e.message, Toast.LENGTH_SHORT).show()
+                return@addSnapshotListener
             }
-        })
-        userAccount.get()
-                .addOnSuccessListener {document ->
-                    if (document != null){
+
+            val friendsList = ArrayList<Friend>()
+            if (snapshot != null && snapshot.exists()) {
+                val userFriends = snapshot.data?.get("Friends") as ArrayList<String>
+
+                userFriends.forEachIndexed { index, friend ->
+                    /* NON FUNZIONA, le due funzioni restituiscono sempre true
+                    val isOnline = isOnline(cloudFirestore.collection("accounts").document(friend))
+                    val isInGame = isInGame(cloudFirestore.collection("accounts").document(friend))
+                    */
+
+                    /* GENERAZIONE MANUALE ISONLINE ISONGAME*/
+                    val isOnline = index - 2 < 0
+                    var image = 0
+                    if (isOnline){
+                        image = R.drawable.user_green
+                    } else{
+                        image = R.drawable.user_red
                     }
+                    val item= Friend(image, friend, isOnline, false)
+                    friendsList += item
                 }
-        */
-        val item= Friend(R.drawable.user_green, "pippo", true, true)
-        friendsList += item
-        val item2= Friend(R.drawable.user_green, "rondo", true, false)
-        friendsList += item2
-        val item3= Friend(R.drawable.user_green, "rondo", true, false)
-        friendsList += item3
-        val item4= Friend(R.drawable.user_green, "rondo", true, false)
-        friendsList += item4
-        val item5= Friend(R.drawable.user_green, "rondo", true, false)
-        friendsList += item5
-        val item6= Friend(R.drawable.user_green, "rondo", true, false)
-        friendsList += item6
-        return friendsList
+            } else {
+                Toast.makeText(this@LoggedIn, "Current data: null", Toast.LENGTH_SHORT).show()
+            }
+
+            friendListView.adapter = FriendAdapter(friendsList)
+            friendListView.layoutManager = LinearLayoutManager(this)
+            friendListView.setHasFixedSize(true)
+        })
     }
 
-}
+    private fun isOnline(userAccount: DocumentReference): Boolean{
+        var bool = true
+        userAccount.get().addOnSuccessListener { document ->
+            bool = document.data?.get("Online") as Boolean
+        }
+        return bool
+    }
+    private fun isInGame(userAccount: DocumentReference): Boolean{
+        var bool = true
+        userAccount.get().addOnSuccessListener { document ->
+            bool = document.data?.get("Ingame") as Boolean
+        }
+        return bool
+    }
+
+ }
