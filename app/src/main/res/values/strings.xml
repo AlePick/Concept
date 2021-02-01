@@ -27,7 +27,12 @@
     <string name="audio_label">Audio</string>
     <string name="music_switch">Music</string>
     <string name="sounds_switch">Sounds</string>
-    <string name="username_profile_icture">Username profile picture</string>
-
+    <string name="username_profile_picture">Username profile picture</string>
     <string name="friend_profile_picture">Friend profile picture</string>
+
+    <string name="online">Online</string>
+    <string name="offline">Offline</string>
+    <string name="new_game_lobby">Ready to play Concept</string>
+    <string name="start_game">Start Game</string>
+    <string name="online_friends">Friends Online</string>
 </resources>

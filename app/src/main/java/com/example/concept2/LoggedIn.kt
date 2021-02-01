@@ -11,11 +11,7 @@ import android.view.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import android.Manifest
-import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
-import android.provider.DocumentsContract
-import android.provider.MediaStore
-import android.util.Log
 import android.widget.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -23,18 +19,8 @@ import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.*
 import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.getField
-import com.google.firebase.firestore.model.Document
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.FirebaseStorage
-import com.google.firebase.storage.StorageReference
 import com.squareup.picasso.Picasso
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
-import java.util.*
 import kotlin.collections.ArrayList
 
 
@@ -46,6 +32,7 @@ import kotlin.collections.ArrayList
     lateinit var addFriendButton: Button
     lateinit var addFriendInput: EditText
     lateinit var friendListView: RecyclerView
+    lateinit var createGameButton: Button
 
     private var galleryPermissionCode = 1001
     private var imagePickCode = 1000
@@ -74,7 +61,7 @@ import kotlin.collections.ArrayList
      }
     private fun initHomepage(){
         //Recycler view from the friends list
-        friendListView = findViewById<RecyclerView>(R.id.friends_list_view)
+        friendListView = findViewById<RecyclerView>(R.id.online_friends_list_view)
         val fsUser = cloudFirestore.collection("accounts").document("${user.displayName}")
         getOnlineFriendsList(fsUser)
 
@@ -95,6 +82,8 @@ import kotlin.collections.ArrayList
         addFriendInput = findViewById<EditText>(R.id.add_friend)
         activateAddFriendButton(addFriendButton, addFriendInput)
 
+        createGameButton = findViewById<Button>(R.id.new_game)
+        activateCreateGameButton(createGameButton)
     }
 
 
@@ -251,12 +240,23 @@ import kotlin.collections.ArrayList
                 val userFriends = snapshot.data?.get("Friends") as ArrayList<String>
 
                 userFriends.forEachIndexed { index, friend ->
-                    /* NON FUNZIONA, le due funzioni restituiscono sempre true
-                    val isOnline = isOnline(cloudFirestore.collection("accounts").document(friend))
-                    val isInGame = isInGame(cloudFirestore.collection("accounts").document(friend))
-                    */
+                    /* COROUTINES PER LA LISTA AMICI, NON FUNZIONA*/
+                    /*val friendDocument = cloudFirestore.collection("accounts").document(friend)
+                    GlobalScope.launch(Dispatchers.Unconfined) {
+                        val friendData = friendDocument.get().await().toObject(User::class.java)
+                        val isOnline = friendData!!.online
+                        val image: Int
+                        if (isOnline){
+                            image = R.drawable.user_green
+                        } else{
+                            image = R.drawable.user_red
+                        }
+                        val item= Friend(image, friend, isOnline, false)
+                        friendsList += item
+                    }*/
 
-                    /* GENERAZIONE MANUALE ISONLINE ISONGAME*/
+
+                    // GENERAZIONE MANUALE ISONLINE ISONGAME
                     val isOnline = index - 2 < 0
                     var image = 0
                     if (isOnline){
@@ -271,17 +271,17 @@ import kotlin.collections.ArrayList
                 Toast.makeText(this@LoggedIn, "Current data: null", Toast.LENGTH_SHORT).show()
             }
 
-            friendListView.adapter = FriendAdapter(friendsList)
+            friendListView.adapter = FriendAdapter(friendsList, null)
             friendListView.layoutManager = LinearLayoutManager(this)
             friendListView.setHasFixedSize(true)
         })
     }
 
-    private fun isOnline(userAccount: DocumentReference): Boolean{
-        var bool = true
-        userAccount.get().addOnSuccessListener { document ->
-            bool = document.data?.get("Online") as Boolean
-        }
+     /*
+    private suspend fun isOnline(userAccount: DocumentReference): Boolean{
+        var bool: Boolean
+        var add_friends_layout = userAccount.get().await()
+        bool = add_friends_layout.data?.get("Online") as Boolean
         return bool
     }
     private fun isInGame(userAccount: DocumentReference): Boolean{
@@ -291,5 +291,13 @@ import kotlin.collections.ArrayList
         }
         return bool
     }
+    */
 
+
+
+    private fun activateCreateGameButton(button: Button){
+        button.setOnClickListener {
+            startActivity(Intent(this, NewGame::class.java))
+        }
+    }
  }

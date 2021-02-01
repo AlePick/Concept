@@ -48,14 +48,14 @@
             android:layout_marginEnd="10dp"
             android:layout_marginRight="10dp"
             android:layout_marginBottom="2dp"
-            android:contentDescription="@string/username_profile_icture"
+            android:contentDescription="@string/username_profile_picture"
             android:scaleType="centerCrop"
             app:layout_constraintBottom_toTopOf="@+id/username_in_menu"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.521"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:srcCompat="@tools:sample/avatars" />
+            app:srcCompat="@drawable/user_green" />
 
         <TextView
             android:id="@+id/username_in_menu"
