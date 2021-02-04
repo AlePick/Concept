@@ -35,4 +35,8 @@
     <string name="new_game_lobby">Ready to play Concept</string>
     <string name="start_game">Start Game</string>
     <string name="online_friends">Friends Online</string>
+
+
+    <string name="turn_string">Turno 1</string>
+    <string name="ready">Ready!</string>
 </resources>

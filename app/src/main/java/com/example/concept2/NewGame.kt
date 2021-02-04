@@ -1,5 +1,6 @@
 package com.example.concept2
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
@@ -14,7 +15,6 @@ import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import java.util.*
 import kotlin.collections.ArrayList
 
 class NewGame : AppCompatActivity(), FriendAdapter.OnItemClickListener {
@@ -148,10 +148,12 @@ class NewGame : AppCompatActivity(), FriendAdapter.OnItemClickListener {
             cloudFirestore.collection("matches").document(newId.toString())
                     .set(newGame)
                     .addOnSuccessListener {
-                        Toast.makeText(this, "Game created", Toast.LENGTH_LONG).show()
+                        val intent = Intent(this@NewGame, PreTurn::class.java)
+                        intent.putExtra("gameID", newId.toString())
+                        startActivity(intent)
                     }
                     .addOnFailureListener {
-                        Toast.makeText(this, "Something went wrong during the creation of the game", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this, "Something went wrong during the creation of the game. Try again!", Toast.LENGTH_LONG).show()
                     }
         } else {
             Toast.makeText(this, "The lobby is empty, invite some of your friends by clicking on them", Toast.LENGTH_LONG).show()

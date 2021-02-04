@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".PreTurn">
+
+    <TextView
+        android:id="@+id/turn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="84dp"
+        android:text="@string/turn_string"
+        android:textSize="32sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/prompter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="84dp"
+        android:text="@string/turn_string"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="@+id/turn"
+        app:layout_constraintStart_toStartOf="@+id/turn"
+        app:layout_constraintTop_toBottomOf="@+id/turn" />
+
+    <Button
+        android:id="@+id/ready_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="180dp"
+        android:text="@string/ready"
+        app:layout_constraintEnd_toEndOf="@+id/prompter"
+        app:layout_constraintStart_toStartOf="@+id/prompter"
+        app:layout_constraintTop_toBottomOf="@+id/prompter" />
+</androidx.constraintlayout.widget.ConstraintLayout>
