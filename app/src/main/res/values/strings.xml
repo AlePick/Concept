@@ -39,4 +39,7 @@
 
     <string name="turn_string">Turno 1</string>
     <string name="ready">Ready!</string>
+
+    <string name="prompter_turn_sentence">Select some clues for your turn!</string>
+    <string name="player_turn_sentence">Try to guess the word or the sentence!</string>
 </resources>

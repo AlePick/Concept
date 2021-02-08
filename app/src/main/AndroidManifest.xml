@@ -11,7 +11,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Concept2">
-        <activity android:name=".PreTurn"></activity>
+        <activity android:name=".PlayerTurn"></activity>
+        <activity android:name=".PrompterTurn" />
+        <activity android:name=".PreTurn" />
         <activity android:name=".NewGame" />
         <activity
             android:name=".LoggedIn"

@@ -80,7 +80,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun createNewAccount(username: String, password: String) {
-        //val friendsArray=
+
         val user = hashMapOf(
             "Username" to username,
             "Friends" to arrayListOf<String>(),
